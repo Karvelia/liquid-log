@@ -51,7 +51,7 @@ Liquid log - отображение производительности как�
 ## Запуск парсинга лога
 
 ### В IDEA
-1. VM Options: `-DParser -Dparse.mode=sdng -Dinflux.host="http://127.0.0.1:8086" -Dinflux.user="root" -Dinflux.password="root"`
+1. VM Options: `-DParser -Dparse.mode=sdng -Dinflux.host="http://127.0.0.1" -Dinflux.user="root" -Dinflux.password="root"`
 1. Аргументы: `"/home/user/sdng.log.2017-09-07" sdng`
 
 Первый аргумент - это путь до файла с логом, который будет парситься.
