@@ -90,7 +90,7 @@
                             Имя БД в influx
                         </td>
                         <td>
-                            <input type="text" name="nameBD">
+                            <input type="text" name="nameDB">
                         </td>
                     </tr>
                     <tr>

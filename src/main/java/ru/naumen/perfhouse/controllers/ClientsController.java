@@ -85,7 +85,6 @@ public class ClientsController
     {
         try
         {
-
             client = client.replaceAll("-", "_");
             influxDAO.connectToDB(client);
             String data = IOUtils.toString(request.getInputStream(), "UTF-8");
@@ -101,40 +100,32 @@ public class ClientsController
     }
 
     @RequestMapping(path = "/", method = RequestMethod.POST)
-    public ModelAndView parsingFile(@RequestParam("nameBD") String nameBD, @RequestParam("file") MultipartFile file,
+    public ModelAndView parsingFile(@RequestParam("nameDB") String nameDB, @RequestParam("file") MultipartFile file,
                                          @RequestParam("modeParsing") String modeParsing,
                                          @RequestParam("timeZone") String timeZone,
                                          @RequestParam(value = "logCheckBox", required = false) boolean logCheck) throws IOException
     {
-        if (!file.isEmpty() && !nameBD.equals(""))
+        if (!file.isEmpty() && !nameDB.equals(""))
         {
-            String nameFile = "Main-uploaded";
-            try
-            {
+            File f = null;
+            try {
+                f = File.createTempFile("tmp", ".txt");
+                f.deleteOnExit();
+
                 byte[] bytes = file.getBytes();
                 BufferedOutputStream stream =
-                        new BufferedOutputStream(new FileOutputStream(new File("Main-uploaded")));
+                        new BufferedOutputStream(new FileOutputStream(f));
                 stream.write(bytes);
                 stream.close();
-            }
-            catch (Exception e)
-            {
-                LOG.error(e.toString(), e);
-                throw e;
-            }
-
-            try {
-                String[] arg = {nameFile, nameBD, timeZone};
-                System.setProperty("parse.mode", modeParsing);
-                if (!logCheck)
-                {
-                    System.setProperty("NoCsv", "true");
-                }
-                App.main(arg);
-            } catch (ParseException e) {
+                String[] arg = {f.getAbsolutePath(), nameDB, timeZone};
+                App.main(arg, modeParsing, logCheck, influxDAO);
+            } catch(Exception e) {
                 e.printStackTrace();
+            } finally {
+             if (f != null) {
+                 f.delete();
+             }
             }
-            new File(nameFile).delete();
         }
         return index();
     }

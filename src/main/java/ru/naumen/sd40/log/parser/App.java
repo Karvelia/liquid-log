@@ -22,7 +22,7 @@ public class App
      * @throws IOException
      * @throws ParseException
      */
-    public static void main(String[] args) throws IOException, ParseException
+    public static void main(String[] args, String mode, boolean logCheck, InfluxDAO influxDAO) throws IOException, ParseException
     {
         String influxDb = null;
 
@@ -31,22 +31,18 @@ public class App
             influxDb = args[1];
             influxDb = influxDb.replaceAll("-", "_");
         }
-
-        InfluxDAO storage = null;
         if (influxDb != null)
         {
-            storage = new InfluxDAO(System.getProperty("influx.host"), System.getProperty("influx.user"),
-                    System.getProperty("influx.password"));
-            storage.init();
-            storage.connectToDB(influxDb);
+            influxDAO.init();
+            influxDAO.connectToDB(influxDb);
         }
-        InfluxDAO finalStorage = storage;
+        InfluxDAO finalStorage = influxDAO;
         String finalInfluxDb = influxDb;
         BatchPoints points = null;
 
-        if (storage != null)
+        if (influxDAO != null)
         {
-            points = storage.startBatchPoints(influxDb);
+            points = influxDAO.startBatchPoints(influxDb);
         }
 
         String log = args[0];
@@ -61,7 +57,6 @@ public class App
             gcTime = new GCTimeParser(args[2]);
         }
 
-        String mode = System.getProperty("parse.mode", "");
         switch (mode)
         {
         case "sdng":
@@ -121,9 +116,7 @@ public class App
                     "Unknown parse mode! Availiable modes: sdng, gc, top. Requested mode: " + mode);
         }
 
-        //influxDb.de
-
-        if (System.getProperty("NoCsv") == null)
+        if (logCheck)
         {
             System.out.print("Timestamp;Actions;Min;Mean;Stddev;50%%;95%%;99%%;99.9%%;Max;Errors\n");
         }
@@ -133,7 +126,7 @@ public class App
             ActionDoneParser dones = set.getActionsDone();
             dones.calculate();
             ErrorParser erros = set.getErrors();
-            if (System.getProperty("NoCsv") == null)
+            if (logCheck)
             {
                 System.out.print(String.format("%d;%d;%f;%f;%f;%f;%f;%f;%f;%f;%d\n", k, dones.getCount(),
                         dones.getMin(), dones.getMean(), dones.getStddev(), dones.getPercent50(), dones.getPercent95(),
@@ -156,6 +149,6 @@ public class App
                 finalStorage.storeTop(finalPoints, finalInfluxDb, k, cpuData);
             }
         });
-        storage.writeBatch(points);
+        influxDAO.writeBatch(points);
     }
 }
