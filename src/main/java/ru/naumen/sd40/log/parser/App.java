@@ -121,6 +121,8 @@ public class App
                     "Unknown parse mode! Availiable modes: sdng, gc, top. Requested mode: " + mode);
         }
 
+        //influxDb.de
+
         if (System.getProperty("NoCsv") == null)
         {
             System.out.print("Timestamp;Actions;Min;Mean;Stddev;50%%;95%%;99%%;99.9%%;Max;Errors\n");

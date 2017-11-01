@@ -1,6 +1,11 @@
 package ru.naumen.perfhouse.controllers;
 
+import java.awt.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -15,12 +20,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import ru.naumen.perfhouse.influx.InfluxDAO;
+import ru.naumen.sd40.log.parser.App;
 
 /**
  * Created by dkirpichenkov on 26.10.16.
@@ -79,6 +85,7 @@ public class ClientsController
     {
         try
         {
+
             client = client.replaceAll("-", "_");
             influxDAO.connectToDB(client);
             String data = IOUtils.toString(request.getInputStream(), "UTF-8");
@@ -91,5 +98,44 @@ public class ClientsController
             LOG.error(ex.toString(), ex);
             throw ex;
         }
+    }
+
+    @RequestMapping(path = "/", method = RequestMethod.POST)
+    public ModelAndView parsingFile(@RequestParam("nameBD") String nameBD, @RequestParam("file") MultipartFile file,
+                                         @RequestParam("modeParsing") String modeParsing,
+                                         @RequestParam("timeZone") String timeZone,
+                                         @RequestParam(value = "logCheckBox", required = false) boolean logCheck) throws IOException
+    {
+        if (!file.isEmpty() && !nameBD.equals(""))
+        {
+            String nameFile = "Main-uploaded";
+            try
+            {
+                byte[] bytes = file.getBytes();
+                BufferedOutputStream stream =
+                        new BufferedOutputStream(new FileOutputStream(new File("Main-uploaded")));
+                stream.write(bytes);
+                stream.close();
+            }
+            catch (Exception e)
+            {
+                LOG.error(e.toString(), e);
+                throw e;
+            }
+
+            try {
+                String[] arg = {nameFile, nameBD, timeZone};
+                System.setProperty("parse.mode", modeParsing);
+                if (!logCheck)
+                {
+                    System.setProperty("NoCsv", "true");
+                }
+                App.main(arg);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            new File(nameFile).delete();
+        }
+        return index();
     }
 }

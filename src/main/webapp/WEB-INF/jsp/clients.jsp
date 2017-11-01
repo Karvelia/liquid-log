@@ -1,6 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.List" %>
+<%@ page import="ru.naumen.sd40.log.parser.TopParser" %>
+<%@ page import="ru.naumen.sd40.log.parser.App" %>
 <html>
 
 <head>
@@ -56,7 +58,7 @@
          <% for(String client:(List<String>)request.getAttribute("clients")) { %>
             <tr>
                 <td class="col-xs-6">
-                    <h4><span><%= client %></span></h2>
+                    <h4><span><%= client %></span></h4>
                 </td>
                 <td class="col-xs-6">
                 	<a class="btn btn-outline-primary" href='<%= ((Map)request.getAttribute("prevMonthLinks")).get(client) %>'>Previous Month</a>
@@ -69,7 +71,98 @@
             </tr>
            <% } %>
         </tbody>
-        </table>
+    </table>
+    <br>
+
+    <div>
+            <form method="POST" enctype="multipart/form-data" action="/">
+                <table>
+                    <tr>
+                        <td>
+                            Выберите файл
+                        </td>
+                        <td>
+                            <input type="file" name="file">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Имя БД в influx
+                        </td>
+                        <td>
+                            <input type="text" name="nameBD">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Режим парсинга
+                        </td>
+                        <td>
+                            <select name="modeParsing">
+                                <option value="sdng" selected>sdng</option>
+                                <option value="gc">gc</option>
+                                <option value="top">top</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Часовой пояс
+                        </td>
+                        <td>
+                            <select name="timeZone">
+                                <option value="GMT-12" selected>GMT-12</option>
+                                <option value="GMT-11" selected>GMT-11</option>
+                                <option value="GMT-10" selected>GMT-10</option>
+                                <option value="GMT-9:30" selected>GMT-9:30</option>
+                                <option value="GMT-9" selected>GMT-9</option>
+                                <option value="GMT-8:30" selected>GMT-8:30</option>
+                                <option value="GMT-8" selected>GMT-8</option>
+                                <option value="GMT-7" selected>GMT-7</option>
+                                <option value="GMT-6" selected>GMT-6</option>
+                                <option value="GMT-5" selected>GMT-5</option>
+                                <option value="GMT-4" selected>GMT-4</option>
+                                <option value="GMT-3:30" selected>GMT-3:30</option>
+                                <option value="GMT-3" selected>GMT-3</option>
+                                <option value="GMT-2" selected>GMT-2</option>
+                                <option value="GMT-1" selected>GMT-1</option>
+                                <option value="GMT Z" selected>GMT-1</option>
+
+                                <option value="GMT+1" selected>GMT+1</option>
+                                <option value="GMT+2" selected>GMT+2</option>
+                                <option value="GMT+3" selected>GMT+3</option>
+                                <option value="GMT+3:30" selected>GMT+3:30</option>
+                                <option value="GMT+4" selected>GMT+4</option>
+                                <option value="GMT+4:30" selected>GMT+4:30</option>
+                                <option value="GMT+5" selected>GMT+5</option>
+                                <option value="GMT+5:30" selected>GMT+5:30</option>
+                                <option value="GMT+6" selected>GMT+6</option>
+                                <option value="GMT+6:30" selected>GMT+6:30</option>
+                                <option value="GMT+7" selected>GMT+7</option>
+                                <option value="GMT+8" selected>GMT+8</option>
+                                <option value="GMT+9" selected>GMT+9</option>
+                                <option value="GMT+9:30" selected>GMT+9:30</option>
+                                <option value="GMT+10" selected>GMT+10</option>
+                                <option value="GMT+10:30" selected>GMT+10:30</option>
+                                <option value="GMT+11" selected>GMT+11</option>
+                                <option value="GMT+11:30" selected>GMT+11:30</option>
+                                <option value="GMT+12" selected>GMT+12</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Осуществление вывода в лог результата парсинга
+                        </td>
+                        <td>
+                            <input type="checkbox" name="logCheckBox">
+                        </td>
+                    </tr>
+                </table> <br />
+                <input type="submit" value="Загрузить">
+            </form>
+    </div>
+    <br>
 </div>
 
 <div class="modal fade" id="customModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
