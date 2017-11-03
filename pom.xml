@@ -10,6 +10,7 @@
     <name>liquid_log</name>
     <description>Performance monitor and visualizer for SD4.0</description>
 
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>

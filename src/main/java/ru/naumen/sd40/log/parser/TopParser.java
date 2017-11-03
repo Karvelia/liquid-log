@@ -1,8 +1,11 @@
 package ru.naumen.sd40.log.parser;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Map;
@@ -21,7 +24,7 @@ public class TopParser
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHH:mm");
 
     private String dataDate;
-    private String fileName;
+    private MultipartFile multipartFile;
 
     private Map<Long, DataSet> existing;
 
@@ -32,16 +35,16 @@ public class TopParser
 
     private DataSet currentSet;
 
-    public TopParser(String file, Map<Long, DataSet> existingDataSet) throws IllegalArgumentException
+    public TopParser(MultipartFile multipartFile, Map<Long, DataSet> existingDataSet) throws IllegalArgumentException
     {
         //Supports these masks in file name: YYYYmmdd, YYY-mm-dd i.e. 20161101, 2016-11-01
-        Matcher matcher = Pattern.compile("\\d{8}|\\d{4}-\\d{2}-\\d{2}").matcher(file);
+        Matcher matcher = Pattern.compile("\\d{8}|\\d{4}-\\d{2}-\\d{2}").matcher(multipartFile.getOriginalFilename());
         if (!matcher.find())
         {
             throw new IllegalArgumentException();
         }
         this.dataDate = matcher.group(0).replaceAll("-", "");
-        this.fileName = file;
+        this.multipartFile = multipartFile;
         this.existing = existingDataSet;
         sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
 
@@ -54,7 +57,7 @@ public class TopParser
 
     public void parse() throws IOException, ParseException
     {
-        try (BufferedReader br = new BufferedReader(new FileReader(fileName)))
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(multipartFile.getInputStream())))
         {
             String line;
             while ((line = br.readLine()) != null)

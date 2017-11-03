@@ -2,7 +2,7 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.List" %>
 <%@ page import="ru.naumen.sd40.log.parser.TopParser" %>
-<%@ page import="ru.naumen.sd40.log.parser.App" %>
+<%@ page import="ru.naumen.sd40.log.parser.Parser" %>
 <html>
 
 <head>
@@ -82,7 +82,7 @@
                             Выберите файл
                         </td>
                         <td>
-                            <input type="file" name="file">
+                            <input type="file" name="file" required>
                         </td>
                     </tr>
                     <tr>
@@ -90,7 +90,7 @@
                             Имя БД в influx
                         </td>
                         <td>
-                            <input type="text" name="nameDB">
+                            <input type="text" name="nameDB" required>
                         </td>
                     </tr>
                     <tr>
@@ -98,7 +98,7 @@
                             Режим парсинга
                         </td>
                         <td>
-                            <select name="modeParsing">
+                            <select name="parseMode">
                                 <option value="sdng" selected>sdng</option>
                                 <option value="gc">gc</option>
                                 <option value="top">top</option>
