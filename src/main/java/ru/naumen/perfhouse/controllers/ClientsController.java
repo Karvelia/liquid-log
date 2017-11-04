@@ -92,11 +92,12 @@ public class ClientsController {
                                     @RequestParam("file") MultipartFile multipartFile,
                                     @RequestParam("parseMode") String parseMode,
                                     @RequestParam("timeZone") String timeZone,
-                                    @RequestParam(value = "logCheckBox", required = false) boolean logCheck) throws IOException {
+                                    @RequestParam(value = "logCheckBox", required = false) boolean logCheck){
         try {
             Parser.parse(multipartFile, nameDB, timeZone, parseMode, logCheck, influxDAO);
-        } catch (ParseException e) {
+        } catch (ParseException | IOException e) {
             e.printStackTrace();
+            LOG.error(e.toString(), e);
         }
         return index();
     }
