@@ -8,7 +8,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
-import ru.naumen.sd40.log.parser.App;
 
 @SpringBootApplication(scanBasePackages = { "ru.naumen" })
 public class PerfhouseApplication extends SpringBootServletInitializer
@@ -21,14 +20,7 @@ public class PerfhouseApplication extends SpringBootServletInitializer
 
     public static void main(String[] args) throws IOException, ParseException
     {
-        if (System.getProperty("Parser") != null)
-        {
-            App.main(args);
-        }
-        else
-        {
             SpringApplication.run(PerfhouseApplication.class, args);
-        }
     }
 
 }

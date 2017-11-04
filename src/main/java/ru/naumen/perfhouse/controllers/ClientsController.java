@@ -1,6 +1,7 @@
 package ru.naumen.perfhouse.controllers;
 
-import java.io.IOException;
+import java.io.*;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -15,31 +16,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import ru.naumen.perfhouse.influx.InfluxDAO;
+import ru.naumen.sd40.log.parser.Parser;
 
 /**
  * Created by dkirpichenkov on 26.10.16.
  */
 @Controller
-public class ClientsController
-{
+public class ClientsController {
     private Logger LOG = LoggerFactory.getLogger(ClientsController.class);
     private InfluxDAO influxDAO;
 
     @Inject
-    public ClientsController(InfluxDAO influxDAO)
-    {
+    public ClientsController(InfluxDAO influxDAO) {
         this.influxDAO = influxDAO;
     }
 
     @RequestMapping(path = "/")
-    public ModelAndView index()
-    {
+    public ModelAndView index() {
         List<String> clients = influxDAO.getDbList();
         HashMap<String, Object> clientLast864Links = new HashMap<>();
         HashMap<String, Object> clientLinks = new HashMap<>();
@@ -75,21 +73,33 @@ public class ClientsController
 
     @RequestMapping(path = "{client}", method = RequestMethod.POST)
     public void postClientStatFormat1(@PathVariable("client") String client, HttpServletRequest request,
-            HttpServletResponse response) throws IOException
-    {
-        try
-        {
+                                      HttpServletResponse response) throws IOException {
+        try {
             client = client.replaceAll("-", "_");
             influxDAO.connectToDB(client);
             String data = IOUtils.toString(request.getInputStream(), "UTF-8");
             JSONObject measure = new JSONObject(data);
             influxDAO.storeFromJSon(null, client, measure);
             response.sendError(HttpServletResponse.SC_OK);
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             LOG.error(ex.toString(), ex);
             throw ex;
         }
     }
+
+    @RequestMapping(path = "/", method = RequestMethod.POST)
+    public ModelAndView parsingFile(@RequestParam("nameDB") String nameDB,
+                                    @RequestParam("file") MultipartFile multipartFile,
+                                    @RequestParam("parseMode") String parseMode,
+                                    @RequestParam("timeZone") String timeZone,
+                                    @RequestParam(value = "logCheckBox", required = false) boolean logCheck){
+        try {
+            Parser.parse(multipartFile, nameDB, timeZone, parseMode, logCheck, influxDAO);
+        } catch (ParseException | IOException e) {
+            e.printStackTrace();
+            LOG.error(e.toString(), e);
+        }
+        return index();
+    }
 }
+
