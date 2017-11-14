@@ -1,9 +1,10 @@
 package ru.naumen.sd40.log.parser;
 
 import org.springframework.web.multipart.MultipartFile;
+import ru.naumen.sd40.log.parser.interfaceParsing.DataParser;
+import ru.naumen.sd40.log.parser.interfaceParsing.TimeParser;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
@@ -18,7 +19,7 @@ import java.util.regex.Pattern;
  * @author dkolmogortsev
  *
  */
-public class TopParser
+public class TopParser implements DataParser, TimeParser
 {
 
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHH:mm");
@@ -35,7 +36,7 @@ public class TopParser
 
     private DataSet currentSet;
 
-    public TopParser(MultipartFile multipartFile, Map<Long, DataSet> existingDataSet) throws IllegalArgumentException
+    public TopParser(MultipartFile multipartFile, Map<Long, DataSet> existingDataSet, String timeZone) throws IllegalArgumentException
     {
         //Supports these masks in file name: YYYYmmdd, YYY-mm-dd i.e. 20161101, 2016-11-01
         Matcher matcher = Pattern.compile("\\d{8}|\\d{4}-\\d{2}-\\d{2}").matcher(multipartFile.getOriginalFilename());
@@ -46,64 +47,59 @@ public class TopParser
         this.dataDate = matcher.group(0).replaceAll("-", "");
         this.multipartFile = multipartFile;
         this.existing = existingDataSet;
-        sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
-
-    }
-
-    public void configureTimeZone(String timeZone)
-    {
         sdf.setTimeZone(TimeZone.getTimeZone(timeZone));
+
     }
 
-    public void parse() throws IOException, ParseException
-    {
+    public void parse() throws IOException, ParseException {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(multipartFile.getInputStream())))
         {
             String line;
             while ((line = br.readLine()) != null)
             {
+                long time = parseTime(line);
+                if (time != 0) {
+                    continue;
+                }
                 parseLine(line);
             }
         }
     }
 
-    private void parseLine(String line) throws IOException, ParseException
-    {
-        //check time
-        long time = 0;
-        Matcher matcher = timeRegex.matcher(line);
-        if (matcher.find())
-        {
-            time = prepareDate(sdf.parse(dataDate + matcher.group(1)).getTime());
-            currentSet = existing.computeIfAbsent(time, k -> new DataSet());
-            return;
-        }
-        if (currentSet != null)
-        {
-            //get la
-            Matcher la = Pattern.compile(".*load average:(.*)").matcher(line);
-            if (la.find())
-            {
-                currentSet.cpuData().addLa(Double.parseDouble(la.group(1).split(",")[0].trim()));
-                return;
-            }
-
-            //get cpu and mem
-            Matcher cpuAndMemMatcher = cpuAndMemPattren.matcher(line);
-            if (cpuAndMemMatcher.find())
-            {
-                currentSet.cpuData().addCpu(Double.valueOf(cpuAndMemMatcher.group(1)));
-                currentSet.cpuData().addMem(Double.valueOf(cpuAndMemMatcher.group(2)));
-                return;
-            }
-        }
-    }
-
-    private long prepareDate(long parsedDate)
-    {
+    private long prepareDate(long parsedDate) {
         int min5 = 5 * 60 * 1000;
         long count = parsedDate / min5;
         return count * min5;
     }
 
+    @Override
+    public long parseTime(String line) throws ParseException {
+        Matcher matcher = timeRegex.matcher(line);
+        if (matcher.find())
+        {
+            long time = prepareDate(sdf.parse(dataDate + matcher.group(1)).getTime());
+            currentSet = existing.computeIfAbsent(time, k -> new DataSet());
+            return time;
+        }
+        return 0L;
+    }
+
+    @Override
+    public void parseLine(String line) {
+        Matcher la = Pattern.compile(".*load average:(.*)").matcher(line);
+        if (la.find())
+        {
+            currentSet.cpuData().addLa(Double.parseDouble(la.group(1).split(",")[0].trim()));
+            return;
+        }
+
+        //get cpu and mem
+        Matcher cpuAndMemMatcher = cpuAndMemPattren.matcher(line);
+        if (cpuAndMemMatcher.find())
+        {
+            currentSet.cpuData().addCpu(Double.valueOf(cpuAndMemMatcher.group(1)));
+            currentSet.cpuData().addMem(Double.valueOf(cpuAndMemMatcher.group(2)));
+            return;
+        }
+    }
 }

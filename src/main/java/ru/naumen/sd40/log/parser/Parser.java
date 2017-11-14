@@ -1,9 +1,6 @@
 package ru.naumen.sd40.log.parser;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.util.HashMap;
 
@@ -11,7 +8,6 @@ import org.influxdb.dto.BatchPoints;
 
 import org.springframework.web.multipart.MultipartFile;
 import ru.naumen.perfhouse.influx.InfluxDAO;
-import ru.naumen.sd40.log.parser.GCParser.GCTimeParser;
 
 /**
  * Created by doki on 22.10.16.
@@ -26,68 +22,32 @@ public class Parser
      * @param parseMode - тип парсинга (top/sdng/gc)
      * @param logCheck - true - выводить в консоль результат лога
      * @param influxDAO - переменная для работы с базой данных
-     * @throws IOException
-     * @throws ParseException
+     * @throws IOException -
+     * @throws ParseException -
      */
     public static void parse(MultipartFile multipartFile, String nameDB, String timeZone, String parseMode, boolean logCheck, InfluxDAO influxDAO) throws IOException, ParseException
     {
         String influxDb = nameDB.replaceAll("-", "_");
-
+        influxDAO.init();
+        influxDAO.connectToDB(influxDb);
         BatchPoints points = influxDAO.startBatchPoints(influxDb);
 
         HashMap<Long, DataSet> data = new HashMap<>();
 
-        TimeParser timeParser = new TimeParser(timeZone);
-        GCTimeParser gcTime = new GCTimeParser(timeZone);
-
         switch (parseMode)
         {
         case "sdng":
+            TimeParser timeParser = new TimeParser(multipartFile, data, timeZone);
             //Parse sdng
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(multipartFile.getInputStream())))
-            {
-                String line;
-                while ((line = br.readLine()) != null)
-                {
-                    long time = timeParser.parseLine(line);
-
-                    if (time == 0)
-                    {
-                        continue;
-                    }
-
-                    int min5 = 5 * 60 * 1000;
-                    long count = time / min5;
-                    long key = count * min5;
-
-                    data.computeIfAbsent(key, k -> new DataSet()).parseLine(line);
-                }
-            }
+            timeParser.parse();
             break;
         case "gc":
+            GCParser gcParser = new GCParser(multipartFile, data, timeZone);
             //Parse gc log
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(multipartFile.getInputStream())))
-            {
-                String line;
-                while ((line = br.readLine()) != null)
-                {
-                    long time = gcTime.parseTime(line);
-
-                    if (time == 0)
-                    {
-                        continue;
-                    }
-
-                    int min5 = 5 * 60 * 1000;
-                    long count = time / min5;
-                    long key = count * min5;
-                    data.computeIfAbsent(key, k -> new DataSet()).parseGcLine(line);
-                }
-            }
+            gcParser.parse();
             break;
         case "top":
-            TopParser topParser = new TopParser(multipartFile, data);
-            topParser.configureTimeZone(timeZone);
+            TopParser topParser = new TopParser(multipartFile, data, timeZone);
             //Parse top
             topParser.parse();
             break;
