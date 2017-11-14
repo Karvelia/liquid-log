@@ -1,6 +1,7 @@
 package ru.naumen.sd40.log.parser;
 
 import org.springframework.web.multipart.MultipartFile;
+import ru.naumen.sd40.log.parser.interfaceParsing.BaseParser;
 import ru.naumen.sd40.log.parser.interfaceParsing.DataParser;
 import ru.naumen.sd40.log.parser.interfaceParsing.TimeParser;
 
@@ -19,7 +20,7 @@ import java.util.regex.Pattern;
  * @author dkolmogortsev
  *
  */
-public class TopParser implements DataParser, TimeParser
+public class TopParser implements DataParser, TimeParser, BaseParser
 {
 
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHH:mm");

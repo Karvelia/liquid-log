@@ -1,6 +1,7 @@
 package ru.naumen.sd40.log.parser;
 
 import org.springframework.web.multipart.MultipartFile;
+import ru.naumen.sd40.log.parser.interfaceParsing.BaseParser;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,7 +18,7 @@ import java.util.regex.Pattern;
 /**
  * Created by doki on 22.10.16.
  */
-public class TimeParser implements ru.naumen.sd40.log.parser.interfaceParsing.TimeParser
+public class TimeParser implements ru.naumen.sd40.log.parser.interfaceParsing.TimeParser, BaseParser
 {
     private MultipartFile multipartFile;
 

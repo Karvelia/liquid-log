@@ -8,6 +8,7 @@ import org.influxdb.dto.BatchPoints;
 
 import org.springframework.web.multipart.MultipartFile;
 import ru.naumen.perfhouse.influx.InfluxDAO;
+import ru.naumen.sd40.log.parser.interfaceParsing.BaseParser;
 
 /**
  * Created by doki on 22.10.16.
@@ -34,27 +35,23 @@ public class Parser
 
         HashMap<Long, DataSet> data = new HashMap<>();
 
+        BaseParser baseParser;
         switch (parseMode)
         {
         case "sdng":
-            TimeParser timeParser = new TimeParser(multipartFile, data, timeZone);
-            //Parse sdng
-            timeParser.parse();
+            baseParser = new TimeParser(multipartFile, data, timeZone);
             break;
         case "gc":
-            GCParser gcParser = new GCParser(multipartFile, data, timeZone);
-            //Parse gc log
-            gcParser.parse();
+            baseParser = new GCParser(multipartFile, data, timeZone);
             break;
         case "top":
-            TopParser topParser = new TopParser(multipartFile, data, timeZone);
-            //Parse top
-            topParser.parse();
+            baseParser = new TopParser(multipartFile, data, timeZone);
             break;
         default:
             throw new IllegalArgumentException(
                     "Unknown parse parseMode! Availiable modes: sdng, gc, top. Requested parseMode: " + parseMode);
         }
+        baseParser.parse();
 
         if (logCheck)
         {

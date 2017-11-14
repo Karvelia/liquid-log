@@ -17,10 +17,11 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.springframework.web.multipart.MultipartFile;
+import ru.naumen.sd40.log.parser.interfaceParsing.BaseParser;
 import ru.naumen.sd40.log.parser.interfaceParsing.DataParser;
 import ru.naumen.sd40.log.parser.interfaceParsing.TimeParser;
 
-public class GCParser implements DataParser, TimeParser
+public class GCParser implements DataParser, TimeParser, BaseParser
 {
     private MultipartFile multipartFile;
 
