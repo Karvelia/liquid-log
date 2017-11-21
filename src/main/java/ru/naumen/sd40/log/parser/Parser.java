@@ -8,7 +8,14 @@ import org.influxdb.dto.BatchPoints;
 
 import org.springframework.web.multipart.MultipartFile;
 import ru.naumen.perfhouse.influx.InfluxDAO;
-import ru.naumen.sd40.log.parser.interfaceParsing.BaseParser;
+import ru.naumen.sd40.log.parser.dataParsing.DataGCParser;
+import ru.naumen.sd40.log.parser.dataParsing.DataSDNGParser;
+import ru.naumen.sd40.log.parser.dataParsing.DataTopParser;
+import ru.naumen.sd40.log.parser.interfaceParsing.DataParser;
+import ru.naumen.sd40.log.parser.interfaceParsing.TimeParser;
+import ru.naumen.sd40.log.parser.timeParsing.TimeGCParser;
+import ru.naumen.sd40.log.parser.timeParsing.TimeSDNGParser;
+import ru.naumen.sd40.log.parser.timeParsing.TimeTopParser;
 
 /**
  * Created by doki on 22.10.16.
@@ -35,23 +42,27 @@ public class Parser
 
         HashMap<Long, DataSet> data = new HashMap<>();
 
-        BaseParser baseParser;
+        DataParser dataParser;
+        TimeParser timeParser;
         switch (parseMode)
         {
         case "sdng":
-            baseParser = new TimeParser(multipartFile, data, timeZone);
+            dataParser = new DataSDNGParser(data);
+            timeParser = new TimeSDNGParser(timeZone);
             break;
         case "gc":
-            baseParser = new GCParser(multipartFile, data, timeZone);
+            dataParser = new DataGCParser(data);
+            timeParser = new TimeGCParser(timeZone);
             break;
         case "top":
-            baseParser = new TopParser(multipartFile, data, timeZone);
+            dataParser = new DataTopParser(data);
+            timeParser = new TimeTopParser(timeZone, multipartFile.getOriginalFilename());
             break;
         default:
             throw new IllegalArgumentException(
                     "Unknown parse parseMode! Availiable modes: sdng, gc, top. Requested parseMode: " + parseMode);
         }
-        baseParser.parse();
+        dataParser.parse(timeParser,multipartFile);
 
         if (logCheck)
         {
@@ -73,7 +84,7 @@ public class Parser
                 influxDAO.storeActionsFromLog(points, influxDb, k, dones, erros);
             }
 
-            GCParser gc = set.getGc();
+            DataGCParser gc = set.getGc();
             if (!gc.isNan())
             {
                 influxDAO.storeGc(points, influxDb, k, gc);

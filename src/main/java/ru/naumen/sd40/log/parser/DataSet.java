@@ -1,5 +1,7 @@
 package ru.naumen.sd40.log.parser;
 
+import ru.naumen.sd40.log.parser.dataParsing.DataGCParser;
+
 /**
  * Created by doki on 22.10.16.
  */
@@ -7,14 +9,14 @@ public class DataSet
 {
     private ActionDoneParser actionsDone;
     private ErrorParser errors;
-    private GCParser gc;
+    private DataGCParser gc;
     private TopData cpuData = new TopData();
 
     public DataSet()
     {
         actionsDone = new ActionDoneParser();
         errors = new ErrorParser();
-        gc = new GCParser();
+        gc = new DataGCParser();
     }
 
     public void parseLine(String line)
@@ -38,7 +40,7 @@ public class DataSet
         return errors;
     }
 
-    public GCParser getGc()
+    public DataGCParser getGc()
     {
         return gc;
     }
